@@ -15,11 +15,13 @@ jobs:
         with:
           ref: main
 
-      - name: Build
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 19
-        working-directory: frontend
+
+      - name: Build
+        working-directory: ./frontend
         run: |
           npm i
           npm run build
@@ -33,6 +35,7 @@ jobs:
           action: "upload"
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "/dist" # App source code path
+          app_location: "/frontend/dist" # App source code path
+          skip_app_build: true
+          skip_api_build: true
           ###### End of Repository/Build Configurations ######
-        working-directory: frontend
