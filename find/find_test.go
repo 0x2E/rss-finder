@@ -1,8 +1,6 @@
 package find
 
 import (
-	"io"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,14 +8,14 @@ import (
 
 func TestParseHTMLResp(t *testing.T) {
 	type testItem struct {
-		ct   string
-		body io.Reader
-		feed []Feed
+		ct      string
+		content []byte
+		feed    []Feed
 	}
 
 	table := []testItem{
 		// no feed title
-		{ct: "text/plain", body: strings.NewReader(`
+		{ct: "text/plain", content: []byte(`
 		<html>
 		<head>
 			<title>html title</title>
@@ -27,7 +25,7 @@ func TestParseHTMLResp(t *testing.T) {
 		`), feed: []Feed{{Title: "html title", Link: "https://example.com/x/feed.xml"}}},
 
 		// match all types
-		{ct: "text/html", body: strings.NewReader(`
+		{ct: "text/html", content: []byte(`
 		<html>
 		<head>
 			<title>html title</title>
@@ -46,7 +44,7 @@ func TestParseHTMLResp(t *testing.T) {
 	}
 
 	for _, tt := range table {
-		feed, err := parseHTMLResp(tt.ct, tt.body)
+		feed, err := parseHTMLResp(tt.ct, tt.content)
 		assert.Nil(t, err)
 		assert.ElementsMatch(t, tt.feed, feed)
 	}
@@ -55,13 +53,13 @@ func TestParseHTMLResp(t *testing.T) {
 func TestParseRSSResp(t *testing.T) {
 	type testItem struct {
 		ct      string
-		content io.Reader
+		content []byte
 		feed    Feed
 	}
 
 	// todo match all types, e.g. https://github.com/mmcdole/gofeed/tree/master/testdata
 	table := []testItem{
-		{ct: "application/rss+xml", content: strings.NewReader(`
+		{ct: "application/rss+xml", content: []byte(`
 		<?xml version="1.0" encoding="utf-8"?>
 		<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0">  
 		  <channel> 

@@ -1,6 +1,7 @@
 package find
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -14,31 +15,24 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-type ErrBadContentType struct {
-	T string
-}
-
-func (e ErrBadContentType) Error() string {
-	return fmt.Sprintf("bad content type %s", e.T)
-}
-
 type Feed struct {
 	Title string `json:"title"`
 	Link  string `json:"link"`
 }
 
 func Find(target *url.URL) ([]Feed, error) {
+	log.SetPrefix("[" + target.String() + "]")
 	feeds := make([]Feed, 0)
 
 	fromPage, err := tryPageSource(target.String())
 	if err != nil {
-		log.Println(err)
+		log.Printf("%s: %s\n", "parse page", err)
 	}
 	feeds = append(feeds, fromPage...)
 
 	fromWellKnown, err := tryWellKnown(target)
 	if err != nil {
-		log.Println(err)
+		log.Printf("%s: %s\n", "parse wellknown", err)
 	}
 	feeds = append(feeds, fromWellKnown...)
 
@@ -51,30 +45,37 @@ func tryPageSource(link string) ([]Feed, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	content, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, err
+		return nil, fmt.Errorf("bad status %d", resp.StatusCode)
 	}
 
 	contentType := resp.Header.Get("Content-Type")
 
-	feeds, err := parseHTMLResp(contentType, resp.Body)
+	feeds, err := parseHTMLResp(contentType, content)
 	if err != nil {
-		log.Println(err)
+		log.Printf("parse html resp: %s\n", err)
 	}
 	if len(feeds) != 0 {
 		return feeds, nil
 	}
 
-	feed, err := parseRSSResp(contentType, resp.Body)
+	feed, err := parseRSSResp(contentType, content)
 	if err != nil {
-		log.Println(err)
+		log.Printf("parse rss resp: %s\n", err)
 	}
-	if feed != (Feed{}) {
+	if !isEmptyFeed(feed) {
+		if feed.Link == "" {
+			feed.Link = link
+		}
 		return []Feed{feed}, nil
 	}
 
-	return nil, ErrBadContentType{T: contentType}
+	return nil, nil
 }
 
 func tryWellKnown(target *url.URL) ([]Feed, error) {
@@ -93,17 +94,27 @@ func tryWellKnown(target *url.URL) ([]Feed, error) {
 		if err != nil {
 			continue
 		}
-		resp, err := request(newTarget)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
+		parse := func(target string) (Feed, error) { // func for defer close resp.Body
+			resp, err := request(newTarget)
+			if err != nil {
+				return Feed{}, err
+			}
+			defer resp.Body.Close()
+			content, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return Feed{}, err
+			}
 
-		feed, err := parseRSSResp(resp.Header.Get("Content-Type"), resp.Body)
+			return parseRSSResp(resp.Header.Get("Content-Type"), content)
+		}
+		feed, err := parse(newTarget)
 		if err != nil {
 			continue
 		}
-		if feed != (Feed{}) {
+		if !isEmptyFeed(feed) {
+			if feed.Link == "" {
+				feed.Link = newTarget
+			}
 			feeds = append(feeds, feed)
 		}
 	}
@@ -111,49 +122,43 @@ func tryWellKnown(target *url.URL) ([]Feed, error) {
 	return feeds, nil
 }
 
-func parseRSSResp(contentType string, body io.Reader) (Feed, error) {
+func parseRSSResp(contentType string, content []byte) (Feed, error) {
 	var (
-		feed Feed
-		err  error
-
 		// https://en.wikipedia.org/wiki/Media_type
 		rssType = []string{
 			"text/plain",
-			"application/json",
+			"text/xml",
+			"text/json",
+			"application/xml",
 			"application/rss+xml",
 			"application/atom+xml",
 			"application/json",
 			"application/feed+json",
 		}
 	)
+
 	for _, t := range rssType {
 		if contentType == t {
-			feed, err = parseRSSContent(body)
-			break
+			parsed, err := gofeed.NewParser().Parse(bytes.NewReader(content))
+			if err != nil || parsed == nil {
+				return Feed{}, err
+			}
+
+			return Feed{
+				// https://github.com/mmcdole/gofeed#default-mappings
+				Title: parsed.Title,
+				Link:  parsed.FeedLink,
+			}, nil
 		}
 	}
-	return feed, err
+
+	return Feed{}, nil
 }
 
-func parseRSSContent(content io.Reader) (Feed, error) {
-	parsed, err := gofeed.NewParser().Parse(content)
-	if err != nil {
-		return Feed{}, err
-	}
-	if parsed == nil {
-		return Feed{}, nil
-	}
-	return Feed{
-		// https://github.com/mmcdole/gofeed#default-mappings
-		Title: parsed.Title,
-		Link:  parsed.FeedLink,
-	}, nil
-}
-
-func parseHTMLResp(contentType string, body io.Reader) ([]Feed, error) {
-	if contentType != "text/html" && contentType != "text/plain" {
-		return nil, ErrBadContentType{T: contentType}
-	}
+func parseHTMLResp(contentType string, content []byte) ([]Feed, error) {
+	// if contentType != "text/html" && contentType != "text/plain" {
+	// 	return nil, nil
+	// }
 
 	feeds := make([]Feed, 0)
 
@@ -164,7 +169,7 @@ func parseHTMLResp(contentType string, body io.Reader) ([]Feed, error) {
 		"link[type='application/feed+json']",
 	}
 
-	doc, err := goquery.NewDocumentFromReader(body)
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(content))
 	if err != nil {
 		return nil, err
 	}
@@ -208,4 +213,8 @@ func request(link string) (*http.Response, error) {
 	// todo add Accept header
 
 	return client.Do(req)
+}
+
+func isEmptyFeed(feed Feed) bool {
+	return feed == Feed{}
 }

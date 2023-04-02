@@ -38,7 +38,7 @@ func FindHandler(w http.ResponseWriter, r *http.Request) {
 	res, err := find.Find(target)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errorResp{Error: err.Error()})
+		// json.NewEncoder(w).Encode(errorResp{Error: err.Error()})
 		return
 	}
 	json.NewEncoder(w).Encode(successResp{
