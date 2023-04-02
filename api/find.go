@@ -53,7 +53,7 @@ var bannedDomainSuffix = []string{
 
 func validInput(input string) (*url.URL, error) {
 	// add scheme, otherwise url.Parse cannot resolve the Hostname
-	if strings.HasPrefix(input, "http://") {
+	if !strings.HasPrefix(input, "http://") && !strings.HasPrefix(input, "https://") {
 		input = "http://" + input
 	}
 
