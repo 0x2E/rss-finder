@@ -80,19 +80,54 @@ export default function Index() {
     },
   });
 
+  interface dataRespI {
+    data: feed[];
+  }
+  interface errRespI {
+    error: string;
+  }
+
   async function submit(value: { url: string }) {
     setLoading(true);
     setData({ data: [] });
     try {
       const resp = await fetch(
-        import.meta.env.VITE_HOST + "/api/find?url=" + value.url,
+        import.meta.env.VITE_HOST +
+          "/api/find?url=" +
+          encodeURIComponent(value.url),
         {
           method: "GET",
         }
       );
-      const jsonResp = (await resp.json()) as { data: feed[] };
-      setData(jsonResp);
-      console.log(data);
+      if (!resp.ok) {
+        switch (resp.status) {
+          case 400:
+            const errData: errRespI = await resp.json();
+            throw new TypeError(errData.error);
+            break;
+          case 500:
+            throw new TypeError("some errors occurred on the server side");
+            break;
+          default:
+            throw new TypeError(resp.statusText);
+        }
+      }
+      let respData: dataRespI = await resp.json();
+      console.log(respData);
+      let tmpData: dataRespI = { data: [] };
+      for (const fr of respData.data) {
+        let exist = false;
+        for (let ft of tmpData.data) {
+          if (ft.title == fr.title && ft.link == fr.link) {
+            exist = true;
+            break;
+          }
+        }
+        if (!exist) {
+          tmpData.data.push(fr);
+        }
+      }
+      setData(tmpData);
     } catch (error) {
       console.log(error);
       if (error instanceof Error) {
