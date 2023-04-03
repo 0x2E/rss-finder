@@ -6,40 +6,58 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParseHTMLResp(t *testing.T) {
-	type testItem struct {
-		ct      string
-		content []byte
-		feed    []Feed
-	}
+type testParseHTMLRespItem struct {
+	ct      string
+	content []byte
+	feed    []Feed
+}
 
-	table := []testItem{
-		// no feed title
-		{ct: "text/plain", content: []byte(`
-		<html>
-		<head>
-			<title>html title</title>
-			<link type="application/rss+xml" href="https://example.com/x/feed.xml">
-		</head>
-		<body></body></html>
-		`), feed: []Feed{{Title: "html title", Link: "https://example.com/x/feed.xml"}}},
-
-		// match all types
+func TestParseHTMLRespMatchLink(t *testing.T) {
+	table := []testParseHTMLRespItem{
 		{ct: "text/html", content: []byte(`
 		<html>
 		<head>
 			<title>html title</title>
-			<link type="application/rss+xml" title="rss+xml feed title" href="https://example.com/x/rss.xml">
-			<link type="application/atom+xml" title="atom+xml feed title" href="https://example.com/x/atom.xml">
-			<link type="application/json" title="json feed title" href="https://example.com/x/feed.json">
-			<link type="application/feed+json" title="feed+json feed title" href="https://example.com/x/feed.json">
+			<link type="application/rss+xml" title="feed title" href="https://example.com/x/rss.xml">
+			<link type="application/atom+xml" href="https://example.com/x/atom.xml">
 		</head>
-		<body></body></html>
+		<body>
+			<link type="application/feed+json" title="link in body" href="https://example.com/x/feed.json">
+		</body>
+		</html>
 		`), feed: []Feed{
-			{Title: "rss+xml feed title", Link: "https://example.com/x/rss.xml"},
-			{Title: "atom+xml feed title", Link: "https://example.com/x/atom.xml"},
-			{Title: "json feed title", Link: "https://example.com/x/feed.json"},
-			{Title: "feed+json feed title", Link: "https://example.com/x/feed.json"},
+			{Title: "feed title", Link: "https://example.com/x/rss.xml"},
+			{Title: "html title", Link: "https://example.com/x/atom.xml"},
+		}},
+	}
+
+	for _, tt := range table {
+		feed, err := parseHTMLResp(tt.ct, tt.content)
+		assert.Nil(t, err)
+		assert.ElementsMatch(t, tt.feed, feed)
+	}
+}
+
+func TestParseHTMLRespMatchA(t *testing.T) {
+	table := []testParseHTMLRespItem{
+		// match <a>
+		{ct: "text/html", content: []byte(`
+		<html>
+		<head><title>html title</title></head>
+		<body>
+			<p>xxx</p>
+			<main>
+				<p>xxx</p>
+				<a href="https://example.com/index.xml">RSS1</a>
+			</main>
+			<footer>
+				<a href="https://example.com/x/index.xml">rss2</a>
+			</footer>
+		</body>
+		</html>
+		`), feed: []Feed{
+			{Title: "RSS1", Link: "https://example.com/index.xml"},
+			{Title: "rss2", Link: "https://example.com/x/index.xml"},
 		}},
 	}
 

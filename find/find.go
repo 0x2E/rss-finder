@@ -83,6 +83,11 @@ func tryWellKnown(target *url.URL) ([]Feed, error) {
 		"atom.xml",
 		"feed.xml",
 		"rss.xml",
+		"index.xml",
+		"atom.json",
+		"feed.json",
+		"rss.json",
+		"index.json",
 		"feed/",
 		"rss/",
 	}
@@ -162,13 +167,6 @@ func parseHTMLResp(contentType string, content []byte) ([]Feed, error) {
 
 	feeds := make([]Feed, 0)
 
-	exprs := []string{
-		"link[type='application/rss+xml']",
-		"link[type='application/atom+xml']",
-		"link[type='application/json']",
-		"link[type='application/feed+json']",
-	}
-
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(content))
 	if err != nil {
 		return nil, err
@@ -176,8 +174,15 @@ func parseHTMLResp(contentType string, content []byte) ([]Feed, error) {
 
 	pageTitle := doc.FindMatcher(goquery.Single("title")).Text()
 
-	for _, expr := range exprs {
-		doc.Find(expr).Each(func(i int, s *goquery.Selection) {
+	// find <link> type rss in <header>
+	linkExprs := []string{
+		"link[type='application/rss+xml']",
+		"link[type='application/atom+xml']",
+		"link[type='application/json']",
+		"link[type='application/feed+json']",
+	}
+	for _, expr := range linkExprs {
+		doc.Find("head").Find(expr).Each(func(i int, s *goquery.Selection) {
 			feed := Feed{}
 			feed.Title, _ = s.Attr("title")
 			feed.Link, _ = s.Attr("href")
@@ -188,6 +193,21 @@ func parseHTMLResp(contentType string, content []byte) ([]Feed, error) {
 			feeds = append(feeds, feed)
 		})
 	}
+
+	// find <a> type rss in <body>
+	aExprs := []string{
+		"a:contains('rss')",
+	}
+	for _, expr := range aExprs {
+		doc.Find("body").Find(expr).Each(func(i int, s *goquery.Selection) {
+			feed := Feed{}
+			feed.Title = s.Text()
+			feed.Link, _ = s.Attr("href")
+
+			feeds = append(feeds, feed)
+		})
+	}
+
 	return feeds, nil
 }
 
