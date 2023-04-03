@@ -22,21 +22,31 @@ type Feed struct {
 
 func Find(target *url.URL) ([]Feed, error) {
 	log.SetPrefix("[" + target.String() + "]")
-	feeds := make([]Feed, 0)
 
+	// find in HTML
 	fromPage, err := tryPageSource(target.String())
 	if err != nil {
 		log.Printf("%s: %s\n", "parse page", err)
 	}
-	feeds = append(feeds, fromPage...)
+	if len(fromPage) != 0 {
+		return fromPage, nil
+	}
 
-	fromWellKnown, err := tryWellKnown(target)
+	// find well-known under this url
+	fromWellKnown, err := tryWellKnown(target.Scheme + "://" + target.Host + target.Path) // https://go.dev/play/p/dVt-47_XWjU
 	if err != nil {
 		log.Printf("%s: %s\n", "parse wellknown", err)
 	}
-	feeds = append(feeds, fromWellKnown...)
+	if len(fromWellKnown) != 0 {
+		return fromWellKnown, nil
+	}
 
-	return feeds, nil
+	// find well-known under url root
+	fromWellKnown, err = tryWellKnown(target.Scheme + "://" + target.Host)
+	if err != nil {
+		log.Printf("%s: %s\n", "parse wellknown under root", err)
+	}
+	return fromWellKnown, err
 }
 
 func tryPageSource(link string) ([]Feed, error) {
@@ -54,9 +64,7 @@ func tryPageSource(link string) ([]Feed, error) {
 		return nil, fmt.Errorf("bad status %d", resp.StatusCode)
 	}
 
-	contentType := resp.Header.Get("Content-Type")
-
-	feeds, err := parseHTMLResp(contentType, content)
+	feeds, err := parseHTMLResp(content)
 	if err != nil {
 		log.Printf("parse html resp: %s\n", err)
 	}
@@ -68,7 +76,7 @@ func tryPageSource(link string) ([]Feed, error) {
 		return feeds, nil
 	}
 
-	feed, err := parseRSSResp(contentType, content)
+	feed, err := parseRSSResp(content)
 	if err != nil {
 		log.Printf("parse rss resp: %s\n", err)
 	}
@@ -82,7 +90,7 @@ func tryPageSource(link string) ([]Feed, error) {
 	return nil, nil
 }
 
-func tryWellKnown(target *url.URL) ([]Feed, error) {
+func tryWellKnown(baseURL string) ([]Feed, error) {
 	wellKnown := []string{
 		"atom.xml",
 		"feed.xml",
@@ -97,7 +105,6 @@ func tryWellKnown(target *url.URL) ([]Feed, error) {
 	}
 	feeds := make([]Feed, 0)
 
-	baseURL := target.Scheme + "://" + target.Host + target.Path // https://go.dev/play/p/dVt-47_XWjU
 	for _, suffix := range wellKnown {
 		newTarget, err := url.JoinPath(baseURL, suffix)
 		if err != nil {
@@ -113,8 +120,7 @@ func tryWellKnown(target *url.URL) ([]Feed, error) {
 			if err != nil {
 				return Feed{}, err
 			}
-
-			return parseRSSResp(resp.Header.Get("Content-Type"), content)
+			return parseRSSResp(content)
 		}
 		feed, err := parse(newTarget)
 		if err != nil {
@@ -129,47 +135,22 @@ func tryWellKnown(target *url.URL) ([]Feed, error) {
 	return feeds, nil
 }
 
-func parseRSSResp(contentType string, content []byte) (Feed, error) {
-	var (
-		// https://en.wikipedia.org/wiki/Media_type
-		rssType = []string{
-			"text/plain",
-			"text/xml",
-			"text/json",
-			"application/xml",
-			"application/rss+xml",
-			"application/atom+xml",
-			"application/json",
-			"application/feed+json",
-		}
-	)
-
-	for _, t := range rssType {
-		if contentType == t {
-			parsed, err := gofeed.NewParser().Parse(bytes.NewReader(content))
-			if err != nil || parsed == nil {
-				return Feed{}, err
-			}
-
-			return Feed{
-				// https://github.com/mmcdole/gofeed#default-mappings
-				Title: parsed.Title,
-
-				// set as default value, but the value parsed from rss are not always accurate.
-				// it is better to use the url that gets the rss content.
-				Link: parsed.FeedLink,
-			}, nil
-		}
+func parseRSSResp(content []byte) (Feed, error) {
+	parsed, err := gofeed.NewParser().Parse(bytes.NewReader(content))
+	if err != nil || parsed == nil {
+		return Feed{}, err
 	}
+	return Feed{
+		// https://github.com/mmcdole/gofeed#default-mappings
+		Title: parsed.Title,
 
-	return Feed{}, nil
+		// set as default value, but the value parsed from rss are not always accurate.
+		// it is better to use the url that gets the rss content.
+		Link: parsed.FeedLink,
+	}, nil
 }
 
-func parseHTMLResp(contentType string, content []byte) ([]Feed, error) {
-	// if contentType != "text/html" && contentType != "text/plain" {
-	// 	return nil, nil
-	// }
-
+func parseHTMLResp(content []byte) ([]Feed, error) {
 	feeds := make([]Feed, 0)
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(content))
@@ -230,8 +211,6 @@ func request(link string) (*http.Response, error) {
 		ua = "rss-finder/1.0"
 	}
 	req.Header.Add("User-Agent", ua)
-
-	// todo add Accept header
 
 	return client.Do(req)
 }

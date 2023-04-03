@@ -7,14 +7,13 @@ import (
 )
 
 type testParseHTMLRespItem struct {
-	ct      string
 	content []byte
-	feed    []Feed
+	want    []Feed
 }
 
 func TestParseHTMLRespMatchLink(t *testing.T) {
 	table := []testParseHTMLRespItem{
-		{ct: "text/html", content: []byte(`
+		{content: []byte(`
 		<html>
 		<head>
 			<title>html title</title>
@@ -25,23 +24,23 @@ func TestParseHTMLRespMatchLink(t *testing.T) {
 			<link type="application/feed+json" title="link in body" href="https://example.com/x/feed.json">
 		</body>
 		</html>
-		`), feed: []Feed{
+		`), want: []Feed{
 			{Title: "feed title", Link: "https://example.com/x/rss.xml"},
 			{Title: "html title", Link: "https://example.com/x/atom.xml"},
 		}},
 	}
 
 	for _, tt := range table {
-		feed, err := parseHTMLResp(tt.ct, tt.content)
+		feed, err := parseHTMLResp(tt.content)
 		assert.Nil(t, err)
-		assert.ElementsMatch(t, tt.feed, feed)
+		assert.ElementsMatch(t, tt.want, feed)
 	}
 }
 
 func TestParseHTMLRespMatchA(t *testing.T) {
 	table := []testParseHTMLRespItem{
 		// match <a>
-		{ct: "text/html", content: []byte(`
+		{content: []byte(`
 		<html>
 		<head><title>html title</title></head>
 		<body>
@@ -55,29 +54,28 @@ func TestParseHTMLRespMatchA(t *testing.T) {
 			</footer>
 		</body>
 		</html>
-		`), feed: []Feed{
+		`), want: []Feed{
 			{Title: "RSS1", Link: "https://example.com/index.xml"},
 			{Title: "rss2", Link: "https://example.com/x/index.xml"},
 		}},
 	}
 
 	for _, tt := range table {
-		feed, err := parseHTMLResp(tt.ct, tt.content)
+		feed, err := parseHTMLResp(tt.content)
 		assert.Nil(t, err)
-		assert.ElementsMatch(t, tt.feed, feed)
+		assert.ElementsMatch(t, tt.want, feed)
 	}
 }
 
 func TestParseRSSResp(t *testing.T) {
 	type testItem struct {
-		ct      string
 		content []byte
-		feed    Feed
+		want    Feed
 	}
 
 	// todo match all types, e.g. https://github.com/mmcdole/gofeed/tree/master/testdata
 	table := []testItem{
-		{ct: "application/rss+xml", content: []byte(`
+		{content: []byte(`
 		<?xml version="1.0" encoding="utf-8"?>
 		<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0">  
 		  <channel> 
@@ -96,13 +94,13 @@ func TestParseRSSResp(t *testing.T) {
 			</item>  
 		  </channel> 
 		</rss>
-		`), feed: Feed{Title: "test", Link: "https://example.com/feed.xml"}},
+		`), want: Feed{Title: "test", Link: "https://example.com/feed.xml"}},
 	}
 
 	for _, tt := range table {
-		feed, err := parseRSSResp(tt.ct, tt.content)
+		feed, err := parseRSSResp(tt.content)
 		assert.Nil(t, err)
-		assert.Equal(t, tt.feed, feed)
+		assert.Equal(t, tt.want, feed)
 	}
 }
 
