@@ -17,6 +17,15 @@ type Feed struct {
 func Find(target *url.URL) ([]Feed, error) {
 	log.SetPrefix("[" + target.String() + "]")
 
+	// find in third-party service
+	fromService, err := tryService(target)
+	if err != nil {
+		log.Printf("%s: %s\n", "parse service", err)
+	}
+	if len(fromService) != 0 {
+		return fromService, nil
+	}
+
 	// find in HTML
 	fromPage, err := tryPageSource(target.String())
 	if err != nil {
