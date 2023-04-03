@@ -1,13 +1,14 @@
 import {
   ActionIcon,
   CopyButton,
+  Flex,
   Group,
   Table,
   Text,
   Tooltip,
   createStyles,
 } from "@mantine/core";
-import { IconCheck, IconCopy } from "@tabler/icons-react";
+import { IconCheck, IconCopy, IconExternalLink } from "@tabler/icons-react";
 
 const useStyles = createStyles((theme) => ({
   table: {
@@ -45,33 +46,48 @@ export default function List(props: { data: feed[] }) {
       </thead>
       <tbody>
         {props.data.map((feed, index) => (
-          <tr key={feed.link}>
+          <tr key={index}>
             <td>{index + 1}</td>
             <td>{feed.title}</td>
             <td>
-              <Group spacing="xs">
+              <Flex gap="sm" justify="space-between">
                 {feed.link}
-                <CopyButton value={feed.link} timeout={3000}>
-                  {({ copied, copy }) => (
-                    <Tooltip
-                      label={copied ? "Copied" : "Copy"}
-                      withArrow
-                      position="right"
-                    >
-                      <ActionIcon
-                        color={copied ? "teal" : "gray"}
-                        onClick={copy}
+                <Group spacing="xs" position="right">
+                  <CopyButton value={feed.link} timeout={3000}>
+                    {({ copied, copy }) => (
+                      <Tooltip
+                        label={copied ? "Copied" : "Copy"}
+                        withArrow
+                        position="right"
                       >
-                        {copied ? (
-                          <IconCheck size="1rem" />
-                        ) : (
-                          <IconCopy size="1rem" />
-                        )}
-                      </ActionIcon>
-                    </Tooltip>
-                  )}
-                </CopyButton>
-              </Group>
+                        <ActionIcon
+                          color={copied ? "teal" : "gray"}
+                          onClick={copy}
+                        >
+                          {copied ? (
+                            <IconCheck size="1rem" />
+                          ) : (
+                            <IconCopy size="1rem" />
+                          )}
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
+                  </CopyButton>
+                  <ActionIcon
+                    component="a"
+                    target="_blank"
+                    href={
+                      // todo xss in href
+                      feed.link.startsWith("https://") ||
+                      feed.link.startsWith("http://")
+                        ? feed.link
+                        : "https://" + feed.link
+                    }
+                  >
+                    <IconExternalLink size="1rem" />
+                  </ActionIcon>
+                </Group>
+              </Flex>
             </td>
           </tr>
         ))}
