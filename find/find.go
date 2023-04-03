@@ -61,6 +61,10 @@ func tryPageSource(link string) ([]Feed, error) {
 		log.Printf("parse html resp: %s\n", err)
 	}
 	if len(feeds) != 0 {
+		for i := range feeds {
+			f := &feeds[i]
+			f.Link = formatLinkToAbs(link, f.Link)
+		}
 		return feeds, nil
 	}
 
@@ -117,9 +121,7 @@ func tryWellKnown(target *url.URL) ([]Feed, error) {
 			continue
 		}
 		if !isEmptyFeed(feed) {
-			if feed.Link == "" {
-				feed.Link = newTarget
-			}
+			feed.Link = newTarget // this may be more accurate than the link parsed from the rss content
 			feeds = append(feeds, feed)
 		}
 	}
@@ -152,7 +154,10 @@ func parseRSSResp(contentType string, content []byte) (Feed, error) {
 			return Feed{
 				// https://github.com/mmcdole/gofeed#default-mappings
 				Title: parsed.Title,
-				Link:  parsed.FeedLink,
+
+				// set as default value, but the value parsed from rss are not always accurate.
+				// it is better to use the url that gets the rss content.
+				Link: parsed.FeedLink,
 			}, nil
 		}
 	}
@@ -195,18 +200,14 @@ func parseHTMLResp(contentType string, content []byte) ([]Feed, error) {
 	}
 
 	// find <a> type rss in <body>
-	aExprs := []string{
-		"a:contains('rss')",
-	}
-	for _, expr := range aExprs {
-		doc.Find("body").Find(expr).Each(func(i int, s *goquery.Selection) {
-			feed := Feed{}
-			feed.Title = s.Text()
-			feed.Link, _ = s.Attr("href")
+	aExpr := "a:contains('rss')"
+	doc.Find("body").Find(aExpr).Each(func(i int, s *goquery.Selection) {
+		feed := Feed{}
+		feed.Title = s.Text()
+		feed.Link, _ = s.Attr("href")
 
-			feeds = append(feeds, feed)
-		})
-	}
+		feeds = append(feeds, feed)
+	})
 
 	return feeds, nil
 }
@@ -237,4 +238,23 @@ func request(link string) (*http.Response, error) {
 
 func isEmptyFeed(feed Feed) bool {
 	return feed == Feed{}
+}
+
+func formatLinkToAbs(base, link string) string {
+	if link == "" {
+		return base
+	}
+	linkURL, err := url.Parse(link)
+	if err != nil {
+		return link
+	}
+	if linkURL.IsAbs() {
+		return link
+	}
+
+	baseURL, err := url.Parse(base)
+	if err != nil {
+		return link
+	}
+	return baseURL.ResolveReference(linkURL).String()
 }
