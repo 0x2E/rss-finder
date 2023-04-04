@@ -14,21 +14,32 @@ A tool for finding and sniffing rss links.
 
 **Well-known paths**:
 
-- atom.xml
-- feed.xml
-- rss.xml
-- index.xml
-- atom.json
-- feed.json
-- rss.json
-- index.json
-- feed/
-- rss/
+- `atom.xml`, `feed.xml`, `rss.xml`, `index.xml`
+- `atom.json`, `feed.json`, `rss.json`, `index.json`
+- `feed/`, `rss/`
 
 **Third party services**:
 
-- GitHub: Based on [official rules](https://docs.github.com/en/rest/activity/feeds?apiVersion=2022-11-28)
-- Reddit: Based on [official wiki](https://www.reddit.com/wiki/rss/)
+- GitHub: based on [official rules](https://docs.github.com/en/rest/activity/feeds?apiVersion=2022-11-28)
+- Reddit: based on [official wiki](https://www.reddit.com/wiki/rss/)
+
+## Contributing
+
+Please keep code clean, and thanks for your contribution!
+
+1. frontend: front-end code is in `frontend`
+
+```bash
+npm run dev
+```
+
+2. serverless: use [vercel cli](https://vercel.com/docs/cli) to run locally
+
+```bash
+vercel dev
+```
+
+3. Test the changes, e.g. `go test . /... ` to test Go code. Then open a pr to the main branch. It is recommended that one pr does only one thing.
 
 ## Env variables
 
