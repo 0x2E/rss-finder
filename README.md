@@ -1,8 +1,18 @@
-# rss-finder
+# [RSS Finder](https://rss-finder.rook1e.com/)
 
-**well-known**:
+A tool for finding and sniffing rss links.
 
-Website url + :
+## How It Works
+
+**Parsing HTML**:
+
+- `<link>` with type `application/rss+xml`
+- `<link>` with type `application/atom+xml`
+- `<link>` with type `application/json`
+- `<link>` with type `application/feed+json`
+- `<a>` contains `rss` word
+
+**Well-known paths**:
 
 - atom.xml
 - feed.xml
@@ -15,13 +25,10 @@ Website url + :
 - feed/
 - rss/
 
-**parse HTML**:
+**Third party services**:
 
-- `<link>` with type `application/rss+xml`
-- `<link>` with type `application/atom+xml`
-- `<link>` with type `application/json`
-- `<link>` with type `application/feed+json`
-- `<a>` contains `rss` word
+- GitHub: Based on [official rules](https://docs.github.com/en/rest/activity/feeds?apiVersion=2022-11-28)
+- Reddit: Based on [official wiki](https://www.reddit.com/wiki/rss/)
 
 ## Env variables
 
