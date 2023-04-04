@@ -8,32 +8,8 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-interface link {
-  label: string;
-  link: string;
-}
-
-const links: link[] = [
-  { label: "GitHub", link: "https://github.com/0x2E" },
-  {
-    label: "Rook1e",
-    link: "https://rook1e.com",
-  },
-];
-
 export default function Footer() {
   const { classes } = useStyles();
-  const items = links.map((link) => (
-    <Anchor<"a">
-      color="dimmed"
-      key={link.label}
-      href={link.link}
-      onClick={(event) => event.preventDefault()}
-      size="sm"
-    >
-      {link.label}
-    </Anchor>
-  ));
 
   return (
     <Flex
@@ -47,17 +23,37 @@ export default function Footer() {
       px={{ base: "lg", sm: "5rem" }}
     >
       <Text color="dimmed" size="sm">
-        Host on Vercel & Azure
+        © 2023{" "}
+        <Anchor
+          href="https://github.com/0x2E"
+          target="_blank"
+          color="dimmed"
+          underline
+        >
+          Rook1e
+        </Anchor>
+        . All Rights Reserved.
       </Text>
-      <Flex
-        justify="space-between"
-        align="center"
-        direction={{ base: "column", sm: "row" }}
-        wrap="wrap"
-        gap={{ base: "xs", sm: "lg" }}
-      >
-        {items}
-      </Flex>
+      <Text color="dimmed" size="sm">
+        Hosted on{" "}
+        <Anchor
+          href="https://vercel.com/"
+          target="_blank"
+          color="dimmed"
+          underline
+        >
+          Vercel
+        </Anchor>{" "}
+        and{" "}
+        <Anchor
+          href="https://azure.microsoft.com/"
+          target="_blank"
+          color="dimmed"
+          underline
+        >
+          Azure
+        </Anchor>
+      </Text>
     </Flex>
   );
 }
