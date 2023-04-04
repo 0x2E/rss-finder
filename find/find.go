@@ -2,11 +2,7 @@ package find
 
 import (
 	"log"
-	"net/http"
 	"net/url"
-	"os"
-	"strings"
-	"time"
 )
 
 type Feed struct {
@@ -16,6 +12,8 @@ type Feed struct {
 
 func Find(target *url.URL) ([]Feed, error) {
 	log.SetPrefix("[" + target.String() + "]")
+
+	initClient()
 
 	// find in third-party service
 	fromService, err := tryService(target)
@@ -50,28 +48,6 @@ func Find(target *url.URL) ([]Feed, error) {
 		log.Printf("%s: %s\n", "parse wellknown under root", err)
 	}
 	return fromWellKnown, err
-}
-
-func request(link string) (*http.Response, error) {
-	client := &http.Client{
-		Transport: &http.Transport{
-			DisableKeepAlives: true,
-		},
-		Timeout: 3 * time.Second,
-	}
-
-	req, err := http.NewRequest("GET", link, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	ua := os.Getenv("USER_AGENT")
-	if strings.TrimSpace(ua) == "" {
-		ua = "rss-finder/1.0"
-	}
-	req.Header.Add("User-Agent", ua)
-
-	return client.Do(req)
 }
 
 func isEmptyFeed(feed Feed) bool {
