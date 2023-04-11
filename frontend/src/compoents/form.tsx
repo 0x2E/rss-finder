@@ -12,6 +12,17 @@ interface errRespI {
   error: string;
 }
 
+const urlDefault = "https://rook1e.com";
+
+function normalizeURL(url: string): string {
+  if (url == "") {
+    url = urlDefault;
+  } else if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    url = "https://" + url;
+  }
+  return url;
+}
+
 export default function Form() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<{ data: feed[] }>();
@@ -23,14 +34,8 @@ export default function Form() {
 
     validate: {
       url: (url: string) => {
-        if (
-          url != "" &&
-          !url.startsWith("http://") &&
-          !url.startsWith("https://")
-        ) {
-          url = "https://" + url;
-          form.setFieldValue("url", url);
-        }
+        url = normalizeURL(url);
+        form.setFieldValue("url", url);
         try {
           new URL(url);
         } catch (error) {
@@ -39,6 +44,9 @@ export default function Form() {
         return null;
       },
     },
+    transformValues: (values) => ({
+      url: normalizeURL(values.url),
+    }),
   });
 
   async function submit(value: { url: string }) {
@@ -106,7 +114,7 @@ export default function Form() {
         <TextInput
           icon={<IconLink />}
           size="lg"
-          placeholder="https://rook1e.com"
+          placeholder={urlDefault}
           // label="URL"
           // withAsterisk
           rightSection={
