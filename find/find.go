@@ -3,6 +3,7 @@ package find
 import (
 	"log"
 	"net/url"
+	"sync"
 )
 
 type Feed struct {
@@ -24,30 +25,57 @@ func Find(target *url.URL) ([]Feed, error) {
 		return fromService, nil
 	}
 
-	// find in HTML
-	fromPage, err := tryPageSource(target.String())
-	if err != nil {
-		log.Printf("%s: %s\n", "parse page", err)
-	}
-	if len(fromPage) != 0 {
-		return fromPage, nil
+	feedsChan := make(chan []Feed, 2)
+	wg := sync.WaitGroup{}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		// find in HTML
+		fromPage, err := tryPageSource(target.String())
+		if err != nil {
+			log.Printf("%s: %s\n", "parse page", err)
+		}
+
+		feedsChan <- fromPage
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		// find well-known under this url
+		fromWellKnown, err := tryWellKnown(target.Scheme + "://" + target.Host + target.Path) // https://go.dev/play/p/dVt-47_XWjU
+		if err != nil {
+			log.Printf("%s: %s\n", "parse wellknown", err)
+		}
+		if len(fromWellKnown) == 0 {
+			// find well-known under url root
+			fromWellKnown, err = tryWellKnown(target.Scheme + "://" + target.Host)
+			if err != nil {
+				log.Printf("%s: %s\n", "parse wellknown under root", err)
+			}
+		}
+
+		feedsChan <- fromWellKnown
+	}()
+
+	go func() {
+		wg.Wait()
+		close(feedsChan)
+	}()
+
+	res := make([]Feed, 0)
+	for feeds := range feedsChan {
+		if len(feeds) == 0 {
+			continue
+		}
+
+		res = append(res, feeds...)
 	}
 
-	// find well-known under this url
-	fromWellKnown, err := tryWellKnown(target.Scheme + "://" + target.Host + target.Path) // https://go.dev/play/p/dVt-47_XWjU
-	if err != nil {
-		log.Printf("%s: %s\n", "parse wellknown", err)
-	}
-	if len(fromWellKnown) != 0 {
-		return fromWellKnown, nil
-	}
-
-	// find well-known under url root
-	fromWellKnown, err = tryWellKnown(target.Scheme + "://" + target.Host)
-	if err != nil {
-		log.Printf("%s: %s\n", "parse wellknown under root", err)
-	}
-	return fromWellKnown, err
+	return res, err
 }
 
 func isEmptyFeed(feed Feed) bool {
