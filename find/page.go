@@ -25,9 +25,9 @@ func tryPageSource(link string) ([]Feed, error) {
 		return nil, fmt.Errorf("bad status %d", resp.StatusCode)
 	}
 
-	feeds, err := parseHTMLResp(content)
+	feeds, err := parseHTMLContent(content)
 	if err != nil {
-		log.Printf("parse html resp: %s\n", err)
+		log.Printf("parse html content: %s\n", err)
 	}
 	if len(feeds) != 0 {
 		for i := range feeds {
@@ -37,9 +37,9 @@ func tryPageSource(link string) ([]Feed, error) {
 		return feeds, nil
 	}
 
-	feed, err := parseRSSResp(content)
+	feed, err := parseRSSContent(content)
 	if err != nil {
-		log.Printf("parse rss resp: %s\n", err)
+		log.Printf("parse rss content: %s\n", err)
 	}
 	if !isEmptyFeed(feed) {
 		if feed.Link == "" {
@@ -51,7 +51,7 @@ func tryPageSource(link string) ([]Feed, error) {
 	return nil, nil
 }
 
-func parseHTMLResp(content []byte) ([]Feed, error) {
+func parseHTMLContent(content []byte) ([]Feed, error) {
 	feeds := make([]Feed, 0)
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(content))
@@ -83,13 +83,24 @@ func parseHTMLResp(content []byte) ([]Feed, error) {
 
 	// find <a> type rss in <body>
 	aExpr := "a:contains('rss')"
+	suspected := make(map[string]struct{})
 	doc.Find("body").Find(aExpr).Each(func(i int, s *goquery.Selection) {
-		feed := Feed{}
-		feed.Title = s.Text()
-		feed.Link, _ = s.Attr("href")
-
-		feeds = append(feeds, feed)
+		link, exists := s.Attr("href")
+		if !exists {
+			return
+		}
+		suspected[link] = struct{}{}
 	})
+	for link := range suspected {
+		feed, err := parseRSSUrl(link)
+		if err != nil {
+			continue
+		}
+		if !isEmptyFeed(feed) {
+			feed.Link = link // this may be more accurate than the link parsed from the rss content
+			feeds = append(feeds, feed)
+		}
+	}
 
 	return feeds, nil
 }

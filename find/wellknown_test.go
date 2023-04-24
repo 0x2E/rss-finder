@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParseRSSResp(t *testing.T) {
+func TestParseRSSContent(t *testing.T) {
 	type testItem struct {
 		content []byte
 		want    Feed
@@ -37,7 +37,7 @@ func TestParseRSSResp(t *testing.T) {
 	}
 
 	for _, tt := range table {
-		feed, err := parseRSSResp(tt.content)
+		feed, err := parseRSSContent(tt.content)
 		assert.Nil(t, err)
 		assert.Equal(t, tt.want, feed)
 	}

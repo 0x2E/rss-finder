@@ -28,19 +28,7 @@ func tryWellKnown(baseURL string) ([]Feed, error) {
 		if err != nil {
 			continue
 		}
-		parse := func(target string) (Feed, error) { // func for defer close resp.Body
-			resp, err := request(newTarget)
-			if err != nil {
-				return Feed{}, err
-			}
-			defer resp.Body.Close()
-			content, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return Feed{}, err
-			}
-			return parseRSSResp(content)
-		}
-		feed, err := parse(newTarget)
+		feed, err := parseRSSUrl(newTarget)
 		if err != nil {
 			continue
 		}
@@ -53,7 +41,20 @@ func tryWellKnown(baseURL string) ([]Feed, error) {
 	return feeds, nil
 }
 
-func parseRSSResp(content []byte) (Feed, error) {
+func parseRSSUrl(url string) (Feed, error) {
+	resp, err := request(url)
+	if err != nil {
+		return Feed{}, err
+	}
+	defer resp.Body.Close()
+	content, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return Feed{}, err
+	}
+	return parseRSSContent(content)
+}
+
+func parseRSSContent(content []byte) (Feed, error) {
 	parsed, err := gofeed.NewParser().Parse(bytes.NewReader(content))
 	if err != nil || parsed == nil {
 		return Feed{}, err

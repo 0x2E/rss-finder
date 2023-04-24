@@ -6,13 +6,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type testParseHTMLRespItem struct {
+type testParseHTMLContentItem struct {
 	content []byte
 	want    []Feed
 }
 
-func TestParseHTMLRespMatchLink(t *testing.T) {
-	table := []testParseHTMLRespItem{
+func TestParseHTMLContentMatchLink(t *testing.T) {
+	table := []testParseHTMLContentItem{
 		{content: []byte(`
 		<html>
 		<head>
@@ -31,14 +31,17 @@ func TestParseHTMLRespMatchLink(t *testing.T) {
 	}
 
 	for _, tt := range table {
-		feed, err := parseHTMLResp(tt.content)
+		feed, err := parseHTMLContent(tt.content)
 		assert.Nil(t, err)
 		assert.ElementsMatch(t, tt.want, feed)
 	}
 }
 
-func TestParseHTMLRespMatchA(t *testing.T) {
-	table := []testParseHTMLRespItem{
+func TestParseHTMLContentMatchA(t *testing.T) {
+	// todo refactor request() to use httptest
+
+	initClient()
+	table := []testParseHTMLContentItem{
 		// match <a>
 		{content: []byte(`
 		<html>
@@ -47,21 +50,20 @@ func TestParseHTMLRespMatchA(t *testing.T) {
 			<p>xxx</p>
 			<main>
 				<p>xxx</p>
-				<a href="https://example.com/index.xml">RSS1</a>
+				<a href="https://github.com/0x2E/rss-finder/releases.atom">Release notes from rss-finder</a>
 			</main>
 			<footer>
-				<a href="https://example.com/x/index.xml">rss2</a>
+				<a href="https://github.com/0x2E/rss-finder">wrong rss</a>
 			</footer>
 		</body>
 		</html>
 		`), want: []Feed{
-			{Title: "RSS1", Link: "https://example.com/index.xml"},
-			{Title: "rss2", Link: "https://example.com/x/index.xml"},
+			{Title: "Release notes from rss-finder", Link: "https://github.com/0x2E/rss-finder/releases.atom"},
 		}},
 	}
 
 	for _, tt := range table {
-		feed, err := parseHTMLResp(tt.content)
+		feed, err := parseHTMLContent(tt.content)
 		assert.Nil(t, err)
 		assert.ElementsMatch(t, tt.want, feed)
 	}
