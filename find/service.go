@@ -2,6 +2,7 @@ package find
 
 import (
 	"fmt"
+	"io"
 	"net/url"
 	"regexp"
 	"strings"
@@ -13,6 +14,7 @@ func tryService(link *url.URL) ([]Feed, error) {
 	matcher := []serviceMatcher{
 		githubMatcher,
 		redditMatcher,
+		youtubeMatcher,
 	}
 	for _, fn := range matcher {
 		feed, err := fn(link)
@@ -154,4 +156,44 @@ func genRedditUserFeed(username string) []Feed {
 
 func genRedditDomainSubmissionFeed(domain string) []Feed {
 	return []Feed{{Title: "/domain/" + domain, Link: fmt.Sprintf("https://reddit.com/domain/%s/.rss", domain)}}
+}
+
+func youtubeMatcher(link *url.URL) ([]Feed, error) {
+	if !strings.HasSuffix(link.Hostname(), "youtube.com") && !strings.HasSuffix(link.Hostname(), "youtu.be") {
+		return nil, nil
+	}
+
+	resp, err := request(link.String())
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	content, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+	if strings.HasPrefix(link.Path, "/@") {
+		re, err := regexp.Compile(`{"key":"browse_id","value":"(.+?)"}`)
+		if err != nil {
+			return nil, err
+		}
+		match := re.FindStringSubmatch(string(content))
+		if len(match) < 2 {
+			return nil, nil
+		}
+		id := match[1]
+		if id == "" {
+			return nil, nil
+		}
+		return []Feed{{Title: "Channel", Link: "https://www.youtube.com/feeds/videos.xml?channel_id=" + id}}, nil
+	} else if strings.HasPrefix(link.Path, "/playlist") {
+		id := link.Query().Get("list")
+		if id == "" {
+			return nil, nil
+		}
+		return []Feed{{Title: "Playlist", Link: "https://www.youtube.com/feeds/videos.xml?playlist_id=" + id}}, nil
+	}
+
+	return nil, nil
 }
