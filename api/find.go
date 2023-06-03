@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/0x2e/rss-finder/find"
@@ -30,6 +31,14 @@ func FindHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
+
+	corsOrigin := "*"
+	webDomain := os.Getenv("WEB_DOMAIN")
+	if webDomain != "" && os.Getenv("VERCEL_ENV") != "development" {
+		corsOrigin = webDomain
+	}
+	w.Header().Set("Access-Control-Allow-Origin", corsOrigin)
+	w.Header().Set("Access-Control-Allow-Methods", "GET,OPTIONS")
 
 	w.Header().Set("Content-Type", "application/json")
 

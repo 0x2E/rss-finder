@@ -46,3 +46,4 @@ vercel dev
 | variable     | required | description                                            |
 | ------------ | -------- | ------------------------------------------------------ |
 | `USER_AGENT` | false    | HTTP `User-Agent` in request, default `rss-finder/1.0` |
+| `WEB_DOMAIN` | true     | Domain name of the web ui                              |
