@@ -117,6 +117,7 @@ export default function Form() {
           placeholder={urlDefault}
           // label="URL"
           // withAsterisk
+          autoFocus
           rightSection={
             <ActionIcon
               size={32}
