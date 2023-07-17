@@ -59,7 +59,7 @@ export default function Form() {
           encodeURIComponent(value.url),
         {
           method: "GET",
-        }
+        },
       );
       if (!resp.ok) {
         switch (resp.status) {
