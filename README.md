@@ -20,8 +20,9 @@ A tool for finding and sniffing rss links.
 
 **Third party services**:
 
-- GitHub: based on [official rules](https://docs.github.com/en/rest/activity/feeds?apiVersion=2022-11-28)
-- Reddit: based on [official wiki](https://www.reddit.com/wiki/rss/)
+- GitHub: [official rules](https://docs.github.com/en/rest/activity/feeds?apiVersion=2022-11-28)
+- Reddit: [official wiki](https://www.reddit.com/wiki/rss/)
+- YouTube: [ref](https://authory.com/blog/create-a-youtube-rss-feed-with-vastly-increased-limits)
 
 ## Contributing
 
