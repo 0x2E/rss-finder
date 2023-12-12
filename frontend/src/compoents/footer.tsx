@@ -24,34 +24,19 @@ export default function Footer() {
     >
       <Text color="dimmed" size="sm">
         © 2023{" "}
-        <Anchor
-          href="https://github.com/0x2E"
-          target="_blank"
-          color="dimmed"
-          underline
-        >
+        <Anchor href="https://github.com/0x2E" target="_blank" color="dimmed" underline>
           Rook1e
         </Anchor>
         . All Rights Reserved.
       </Text>
       <Text color="dimmed" size="sm">
         Hosted on{" "}
-        <Anchor
-          href="https://vercel.com/"
-          target="_blank"
-          color="dimmed"
-          underline
-        >
+        <Anchor href="https://vercel.com/" target="_blank" color="dimmed" underline>
           Vercel
         </Anchor>{" "}
         and{" "}
-        <Anchor
-          href="https://azure.microsoft.com/"
-          target="_blank"
-          color="dimmed"
-          underline
-        >
-          Azure
+        <Anchor href="https://www.cloudflare.com/" target="_blank" color="dimmed" underline>
+          CloudFlare
         </Anchor>
       </Text>
     </Flex>
