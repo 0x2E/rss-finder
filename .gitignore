@@ -1,4 +1,7 @@
-.vercel
 .vscode
 .DS_Store
 ._*
+node_modules
+dist
+coverage
+.env
