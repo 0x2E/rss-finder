@@ -1,124 +1,51 @@
 @import 'tailwindcss';
 
 @theme {
-	/* Modern Blue-Gray Palette - professional & vibrant */
-
-	/* Primary - vibrant blue */
-	--color-primary: #3b82f6;
-	--color-primary-hover: #2563eb;
+	/* Clean minimal palette */
+	--color-primary: #2563eb;
+	--color-primary-hover: #1d4ed8;
 	--color-primary-foreground: #ffffff;
 
-	/* Secondary - elegant slate */
-	--color-secondary: #64748b;
-	--color-secondary-hover: #475569;
-	--color-secondary-foreground: #ffffff;
+	--color-muted: #f9fafb;
+	--color-muted-foreground: #6b7280;
 
-	/* Muted - neutral grays */
-	--color-muted: #f8fafc;
-	--color-muted-foreground: #64748b;
-
-	/* Accent - light blue for interactions */
-	--color-accent: #f1f5f9;
-	--color-accent-foreground: #334155;
-
-	/* Status colors */
-	--color-destructive: #ef4444;
+	--color-destructive: #dc2626;
 	--color-destructive-foreground: #ffffff;
 
-	--color-success: #10b981;
-	--color-success-foreground: #ffffff;
-
-	/* Interactive elements */
-	--color-border: #e2e8f0;
+	--color-border: #e5e7eb;
 	--color-input: #ffffff;
-	--color-ring: #3b82f6;
+	--color-ring: #2563eb;
 
-	/* Minimal shadows */
-	--shadow-xs: none;
-	--shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.02);
-	--shadow: 0 2px 4px 0 rgb(0 0 0 / 0.03);
-	--shadow-lg: 0 1px 3px 0 rgb(0 0 0 / 0.05);
-
-	/* Custom fonts */
 	--font-sans:
-		-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-
-	/* Custom animations */
-	--animate-gradient-x: gradient-x 3s ease infinite;
-	--animate-float: float 3s ease-in-out infinite;
-}
-
-@keyframes gradient-x {
-	0%,
-	100% {
-		background-position: 0% 50%;
-	}
-	50% {
-		background-position: 100% 50%;
-	}
-}
-
-@keyframes float {
-	0%,
-	100% {
-		transform: translateY(0px);
-	}
-	50% {
-		transform: translateY(-4px);
-	}
+		-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Custom utilities */
 .gradient-text {
-	background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-clip: text;
-}
-
-.button-shimmer::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: -100%;
-	width: 100%;
-	height: 100%;
-	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-	transition: left 0.5s ease;
-}
-
-.button-shimmer:hover::before {
-	left: 100%;
+	color: var(--color-primary);
+	font-weight: 600;
 }
 
 body {
-	background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+	background: #ffffff;
 	font-family: var(--font-sans);
-	letter-spacing: -0.01em;
 }
 
-/* Success message animation */
+/* Success message */
 .success-message {
 	opacity: 0;
-	transform: translateX(100%);
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	transition: opacity 0.2s ease;
 }
 
 .success-message.show {
 	opacity: 1;
-	transform: translateX(0);
 }
 
-/* Mobile responsive adjustments */
-@media (max-width: 768px) {
+/* Mobile optimizations */
+@media (max-width: 640px) {
 	.success-message {
-		top: 1rem;
-		right: 1rem;
 		left: 1rem;
-		transform: translateY(-100%);
-	}
-
-	.success-message.show {
-		transform: translateY(0);
+		right: 1rem;
+		top: 1rem;
 	}
 }
