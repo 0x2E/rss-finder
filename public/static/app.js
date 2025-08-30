@@ -1,6 +1,5 @@
 class RSSFinder {
   constructor() {
-    this.debounceTimeout = null;
     this.init();
   }
 
@@ -25,20 +24,8 @@ class RSSFinder {
   handleInputChange(e) {
     const url = e.target.value.trim();
 
-    // Clear previous timeout
-    if (this.debounceTimeout) {
-      clearTimeout(this.debounceTimeout);
-    }
-
     // Enable/disable button based on input
     this.searchBtn.disabled = !url;
-
-    // Auto-submit if URL looks valid (debounced)
-    if (url && this.isValidUrl(url)) {
-      this.debounceTimeout = setTimeout(() => {
-        this.performSearch(url);
-      }, 800);
-    }
   }
 
   handleKeyDown(e) {
@@ -103,12 +90,6 @@ class RSSFinder {
   }
 
   async performSearch(url) {
-    // Clear any pending debounced search
-    if (this.debounceTimeout) {
-      clearTimeout(this.debounceTimeout);
-      this.debounceTimeout = null;
-    }
-
     // Normalize URL first
     let normalizedUrl;
     try {
