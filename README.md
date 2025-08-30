@@ -1,11 +1,10 @@
 # RSS Finder
 
-A modern web application to discover RSS feeds from any website. Built with Hono and powered by feedfinder-ts for reliable RSS feed detection.
+A modern web application to discover RSS feeds from any website. Powered by feedfinder-ts for reliable RSS feed detection.
 
 ## Features
 
 - **Robust Detection**: Uses [feedfinder-ts](https://github.com/0x2E/feedfinder-ts) under the hood for comprehensive RSS feed discovery
-- **Universal Deployment**: Built with [Hono](https://hono.dev/), deployable on any Hono-supported runtime
 - **Fast & Lightweight**: Optimized for performance with minimal dependencies
 
 ## Getting Started
@@ -44,14 +43,7 @@ pnpm build
 
 ## Deployment
 
-Since this app is built with Hono, it's compatible with multiple runtimes. Check the [Hono docs](https://hono.dev/docs/) for platform-specific instructions.
-
-Cloudflare Pages (Default):
-
-```bash
-# Deploy to Cloudflare Pages
-pnpm deploy
-```
+Since this app is built with SvelteKit, it's compatible with multiple runtimes. Check the [SvelteKit docs](https://svelte.dev/docs/kit/building-your-app) for platform-specific instructions.
 
 ## API
 
@@ -61,7 +53,7 @@ pnpm deploy
 
 ```json
 {
-  "url": "https://example.com"
+	"url": "https://example.com"
 }
 ```
 
@@ -69,13 +61,13 @@ pnpm deploy
 
 ```json
 {
-  "feeds": [
-    {
-      "title": "Example Blog RSS",
-      "url": "https://example.com/rss.xml",
-      "type": "application/rss+xml"
-    }
-  ]
+	"feeds": [
+		{
+			"title": "Example Blog RSS",
+			"url": "https://example.com/rss.xml",
+			"type": "application/rss+xml"
+		}
+	]
 }
 ```
 
@@ -94,4 +86,3 @@ MIT
 ## Credits
 
 - [feedfinder-ts](https://github.com/0x2E/feedfinder-ts) - For reliable RSS feed detection
-- [Hono](https://hono.dev/) - For the fast, lightweight web framework
