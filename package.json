@@ -1,0 +1,24 @@
+{
+  "name": "rss-finder",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "wrangler pages dev",
+    "deploy": "pnpm run build && wrangler pages deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+  },
+  "dependencies": {
+    "feedfinder-ts": "^1.0.3",
+    "hono": "^4.9.5"
+  },
+  "devDependencies": {
+    "@hono/vite-build": "^1.7.0",
+    "@hono/vite-dev-server": "^0.20.1",
+    "vite": "^7.1.3",
+    "wrangler": "^4.33.1"
+  }
+}
