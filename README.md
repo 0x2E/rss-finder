@@ -1,50 +1,97 @@
-# [RSS Finder](https://rss-finder.rook1e.com/)
+# RSS Finder
 
-A tool for finding and sniffing rss links.
+A modern web application to discover RSS feeds from any website. Built with Hono and powered by feedfinder-ts for reliable RSS feed detection.
 
-## How It Works
+## Features
 
-**Parsing HTML**:
+- **Robust Detection**: Uses [feedfinder-ts](https://github.com/0x2E/feedfinder-ts) under the hood for comprehensive RSS feed discovery
+- **Universal Deployment**: Built with [Hono](https://hono.dev/), deployable on any Hono-supported runtime
+- **Fast & Lightweight**: Optimized for performance with minimal dependencies
 
-- `<link>` with type `application/rss+xml`
-- `<link>` with type `application/atom+xml`
-- `<link>` with type `application/json`
-- `<link>` with type `application/feed+json`
-- `<a>` contains `rss` word
+## Getting Started
 
-**Well-known paths**:
+### Prerequisites
 
-- `atom.xml`, `feed.xml`, `rss.xml`, `index.xml`
-- `atom.json`, `feed.json`, `rss.json`, `index.json`
-- `feed/`, `rss/`
+- Node.js 22+
+- pnpm (recommended) or npm
 
-**Third party services**:
+### Installation
 
-- GitHub: [official rules](https://docs.github.com/en/rest/activity/feeds?apiVersion=2022-11-28)
-- Reddit: [official wiki](https://www.reddit.com/wiki/rss/)
-- YouTube: [ref](https://authory.com/blog/create-a-youtube-rss-feed-with-vastly-increased-limits)
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd rss-finder
+
+# Install dependencies
+pnpm install
+```
+
+### Development
+
+```bash
+# Start development server
+pnpm dev
+```
+
+Visit `http://localhost:5173` to see the application.
+
+### Building
+
+```bash
+# Build for production
+pnpm build
+```
+
+## Deployment
+
+Since this app is built with Hono, it's compatible with multiple runtimes. Check the [Hono docs](https://hono.dev/docs/) for platform-specific instructions.
+
+Cloudflare Pages (Default):
+
+```bash
+# Deploy to Cloudflare Pages
+pnpm deploy
+```
+
+## API
+
+### Find RSS Feeds
+
+**POST** `/api/find-feeds`
+
+```json
+{
+  "url": "https://example.com"
+}
+```
+
+**Response:**
+
+```json
+{
+  "feeds": [
+    {
+      "title": "Example Blog RSS",
+      "url": "https://example.com/rss.xml",
+      "type": "application/rss+xml"
+    }
+  ]
+}
+```
 
 ## Contributing
 
-Please keep code clean, and thanks for your contribution!
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-1. frontend: front-end code is in `frontend`
+## License
 
-```bash
-npm run dev
-```
+MIT
 
-2. serverless: use [vercel cli](https://vercel.com/docs/cli) to run locally
+## Credits
 
-```bash
-vercel dev
-```
-
-3. Test the changes, e.g. `go test . /... ` to test Go code. Then open a pr to the main branch. It is recommended that one pr does only one thing.
-
-## Env variables
-
-| variable     | required | description                                            |
-| ------------ | -------- | ------------------------------------------------------ |
-| `USER_AGENT` | false    | HTTP `User-Agent` in request, default `rss-finder/1.0` |
-| `WEB_DOMAIN` | true     | Domain name of the web ui                              |
+- [feedfinder-ts](https://github.com/0x2E/feedfinder-ts) - For reliable RSS feed detection
+- [Hono](https://hono.dev/) - For the fast, lightweight web framework

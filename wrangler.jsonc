@@ -1,0 +1,7 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rss-finder",
+  "compatibility_date": "2025-08-27",
+  "pages_build_output_dir": "./dist",
+  "compatibility_flags": ["nodejs_compat"]
+}
