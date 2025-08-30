@@ -119,7 +119,7 @@
 </script>
 
 <main class="mx-auto flex min-h-screen max-w-4xl flex-col px-4 sm:px-6 lg:px-8">
-	<section class="flex min-h-screen flex-1 flex-col items-center justify-center">
+	<section class="flex min-h-screen flex-1 flex-col items-center justify-start pt-24 sm:pt-32 lg:pt-40">
 		<header class="mb-6 text-center sm:mb-8">
 			<h1 class="gradient-text mb-2 text-3xl font-medium sm:mb-3 sm:text-4xl">RSS Finder</h1>
 			<p class="text-sm text-muted-foreground sm:text-base">Discover RSS feeds from any website</p>
