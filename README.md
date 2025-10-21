@@ -9,12 +9,22 @@ A modern web application to discover RSS feeds from any website. Powered by feed
 
 ## Getting Started
 
-### Prerequisites
+<details>
+<summary>1. Using Docker Image (Recommended)</summary>
+
+```bash
+docker run -d -p 3000:3000 --name rss-finder ghcr.io/0x2E/rss-finder:latest
+```
+
+Visit `http://localhost:3000` to use the application.
+
+</details>
+
+<details>
+<summary>2. Build from Source or Deploy to Cloud Services</summary>
 
 - Node.js 22+
-- pnpm (recommended) or npm
-
-### Installation
+- pnpm
 
 ```bash
 # Clone the repository
@@ -23,27 +33,17 @@ cd rss-finder
 
 # Install dependencies
 pnpm install
-```
 
-### Development
-
-```bash
-# Start development server
-pnpm dev
-```
-
-Visit `http://localhost:5173` to see the application.
-
-### Building
-
-```bash
 # Build for production
 pnpm build
+
+# or build for Node.js
+pnpm build:node
 ```
 
-## Deployment
+Since this app is built with SvelteKit, it's compatible with multiple runtimes. Check the [SvelteKit docs](https://svelte.dev/docs/kit/building-your-app) for platform-specific deployment instructions.
 
-Since this app is built with SvelteKit, it's compatible with multiple runtimes. Check the [SvelteKit docs](https://svelte.dev/docs/kit/building-your-app) for platform-specific instructions.
+</details>
 
 ## API
 
